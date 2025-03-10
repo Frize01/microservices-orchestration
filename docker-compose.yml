@@ -1,0 +1,22 @@
+services:
+  db:
+    image: mariadb:latest
+    container_name: mariadb
+    user: "${UID}:${GID}"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./data/bdd:/var/lib/mysql
+    ports:
+      - "3306"
+    command: --bind-address=0.0.0.0
+
+  api:
+    dockerfile: ./apps/api-app
+    build:
+      context: .
+      target: api
+    container_name: api
+  
