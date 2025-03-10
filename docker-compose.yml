@@ -4,19 +4,52 @@ services:
     container_name: mariadb
     user: "${UID}:${GID}"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
     volumes:
       - ./data/bdd:/var/lib/mysql
     ports:
-      - "3306"
+      - "3306:3306"
     command: --bind-address=0.0.0.0
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
+    networks:
+      - network_bdd
 
   api:
-    dockerfile: ./apps/api-app
+    depends_on:
+      db:
+        condition: service_healthy
     build:
-      context: .
-      target: api
+      context: ./apps/api-app/
+      dockerfile: Dockerfile
     container_name: api
-  
+    env_file:
+      - ./env/${APP_ENV}.env
+    networks:
+      - network_bdd
+    expose:
+      - 3000:3000
+
+  auth:
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      context: ./apps/auth-app/
+      dockerfile: Dockerfile
+    container_name: auth-app
+    env_file:
+      - ./env/${APP_ENV}.env
+    networks:
+      - network_bdd
+    expose:
+      - 4000:3000
+
+networks:
+  network_bdd:
+    driver: bridge
