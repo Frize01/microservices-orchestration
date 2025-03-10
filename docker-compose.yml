@@ -32,8 +32,8 @@ services:
       - ./env/${APP_ENV}.env
     networks:
       - network_bdd
-    expose:
-      - 3000:3000
+    ports:
+      - "3000:3000"
 
   auth:
     depends_on:
@@ -47,8 +47,8 @@ services:
       - ./env/${APP_ENV}.env
     networks:
       - network_bdd
-    expose:
-      - 4000:3000
+    ports:
+      - "4000:3000"
 
 networks:
   network_bdd:
